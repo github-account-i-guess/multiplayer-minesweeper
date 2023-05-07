@@ -52,6 +52,8 @@ const opponentGrid = new Grid(otherPlayerOffset, 0, 1, "rgb(255, 100, 100)", get
 const playerDisplay = new PlayerDisplay(playerDisplaysContainer, playerGrid, "You");
 const opponentDisplay = new PlayerDisplay(playerDisplaysContainer, opponentGrid, "Opponent");
 
+let completedGrids = 0;
+
 let resizing = false;
 function adjustCanvasToScreen() {
     resizing = true;
@@ -87,6 +89,7 @@ document.addEventListener("keydown", event => {
     const key = event.key.toLowerCase();
 
     if (key == 'tab') {
+        if (playerGrid.completed) completedGrids ++;
         playerGrid.reset();
     }
 });
@@ -104,8 +107,8 @@ setInterval(_ => {
     playerGrid.draw(gameContext, height);
     opponentGrid.draw(gameContext, height * otherPlayerScale);
 
-    playerDisplay.update();
-    opponentDisplay.update();
+    playerDisplay.update(completedGrids, 0);
+    opponentDisplay.update(0, 0);
 }, 1000/60);
 
 

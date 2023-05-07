@@ -33,14 +33,26 @@ class PlayerDisplay {
 
         this.mineCounter = createElement("p", ["text-center"], `Mines: ${this.grid.mines}`);
 
-        this.containerFluid.append(...[this.title, this.mineCounter].map(PlayerDisplay.rowify));
+        this.progressCounter = createElement("p", ["text-center"], `Progress: None`);
+
+        this.completedGrids = createElement("p", ["text-center"], `Completed: None`);
+
+        this.containerFluid.append(...[
+            this.title,
+            this.mineCounter,
+            this.progressCounter,
+            this.completedGrids,
+        ].map(PlayerDisplay.rowify));
 
         this.col.append(this.containerFluid);
 
         this.container.append(this.col);
     }
 
-    update() {
+    update(completed, sendableMines) {
         this.mineCounter.innerHTML = `Mines: ${this.grid.mines}`;
+        this.progressCounter.innerHTML = `Progress ${this.grid.progress}/${Grid.gridArea}`;
+        if (this.grid.completed) completed ++;
+        this.completedGrids.innerHTML = `Completed: ${completed}`;
     }
 }

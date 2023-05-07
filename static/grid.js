@@ -3,7 +3,9 @@ class Grid {
     static density = 75 / (16* 30);
     static gridSize = 15;
 
-    static mineAmount = Math.round(this.density * this.gridSize ** 2);
+    static gridArea = this.gridSize ** 2;
+
+    static mineAmount = Math.round(this.density * this.gridArea);
 
 
     static get emptyArray() {
@@ -90,8 +92,14 @@ class Grid {
     }
 
     get mines() {
+        return Grid.mineAmount - this.squares.filter(s => {
+            return s.flagged; 
+        }).length;
+    }
+
+    get progress() {
         return this.squares.filter(s => {
-            return s.mine && !s.flagged; 
+            return s.mine || s.revealed; 
         }).length;
     }
 }
