@@ -1,5 +1,6 @@
 class Grid {
-    static density = 99 / (16 * 30);
+    // static density = 99 / (16 * 30);
+    static density = 75 / (16* 30);
     static gridSize = 15;
 
     static mineAmount = Math.round(this.density * this.gridSize ** 2);
@@ -10,6 +11,7 @@ class Grid {
     }
 
     populated = false;
+    lost = false;
 
     constructor(x, y, size, color, squares) {
         this.square = new Square(x, y, size, color);
@@ -26,6 +28,7 @@ class Grid {
     }
 
     onClick(x, y, e) {
+        if (this.lost) return;
         const { abs } = Math;
         const { gridSize } = Grid;
         const square = this.squares.find((s, i) => {
@@ -40,6 +43,8 @@ class Grid {
         };
 
         square.onClick(x, y, e);
+
+        if (this.completed) console.log("completed");
     }
 
     populateGrid(safeSquare) {
@@ -72,5 +77,21 @@ class Grid {
         });
 
         this.populated = false;
+        this.lost = false;
+    }
+
+    get completed() {
+        const { length } = this.squares;
+        const completed = this.squares.filter(s => {
+            return s.mine || s.revealed;
+        });
+
+        return length == completed.length;
+    }
+
+    get mines() {
+        return this.squares.filter(s => {
+            return s.mine && !s.flagged; 
+        }).length;
     }
 }

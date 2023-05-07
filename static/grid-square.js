@@ -97,10 +97,12 @@ class GridSquare {
         this.revealed = true;
 
         if (this.mine) {
-            setTimeout(_ => {
-                if (!this.grid) return;
-                this.grid.reset();
-            }, 1000);
+            if (!this.grid) return;
+            this.grid.lost = true;
+            // setTimeout(_ => {
+            //     if (!this.grid) return;
+            //     this.grid.reset();
+            // }, 1000);
             return;
         }
 
