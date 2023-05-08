@@ -112,10 +112,29 @@ class Grid {
     get incorrectlyFlagged() {
         return this.squares.filter(s => {
             return s.flagged && !s.mine;
-        });
+        }).length;
     }
 
     get unflaggedMines() {
         return this.mines - this.flagged;
+    }
+
+    get serverGrid() {
+        return this.squares.map(s => {
+            const { revealed, flagged, mine } = s;
+            return { revealed, flagged, mine };
+        });
+    }
+
+    set serverGrid(grid) {
+        this.squares = grid.map((s, index) => {
+            const { revealed, flagged, mine } = s;
+            const square = this.squares[index];
+            square.revealed = revealed;
+            square.flagged = flagged;
+            square.mine = mine;
+
+            return square;
+        });
     }
 }

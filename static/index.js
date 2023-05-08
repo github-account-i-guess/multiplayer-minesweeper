@@ -1,16 +1,19 @@
+const socket = io();
+
 const gameCanvas = document.querySelector("#game-canvas");
 const infoDiv = document.querySelector("#info-div")
 const playerDisplaysContainer = document.querySelector("#player-displays-container");
 const gameContext = gameCanvas.getContext("2d");
 
 const { gridSize } = Grid;
+const margin = 1/100;
+const gridSquareSize = 1/gridSize - margin;
 
 function getSquares(offset){
     const squares = Grid.emptyArray.map((_, y) => {
         return Grid.emptyArray.map((_, x) => {
-            const margin = 1/100;
             const hMargin = margin/2;
-            return new GridSquare(x/gridSize + hMargin + offset, y/gridSize + hMargin, 1/gridSize - margin);
+            return new GridSquare(x/gridSize + hMargin + offset, y/gridSize + hMargin, gridSquareSize);
         });
     }).flat();
 
@@ -99,6 +102,7 @@ document.addEventListener("keydown", event => {
             player.lives --;
 
             const { flagged, incorrectlyFlagged } = playerGrid;
+            console.log(flagged, incorrectlyFlagged);
             player.sendableMines += flagged - incorrectlyFlagged * 2;
             if (player.lives <= 0) {
                 console.log("You lost, this will do more in the future");
@@ -128,4 +132,10 @@ setInterval(_ => {
 
 setInterval(_ => {
     resizing = false;
+
+    socket.emit("info", player.serverInfo);
 }, 200);
+
+socket.on("info", info => {
+    opponent.serverInfo = info;
+});
