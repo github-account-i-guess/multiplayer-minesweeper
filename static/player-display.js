@@ -17,8 +17,8 @@ class PlayerDisplay {
     constructor(container, player) {
         const { grid, name } = player;
         this.container = container;
-        this.grid = player.grid;
-        this.name = player.name;
+        this.grid = grid;
+        this.name = name;
         this.player = player;
 
         this.build();
@@ -32,21 +32,20 @@ class PlayerDisplay {
         this.containerFluid = createElement("div", ["container-fluid"]);
 
         this.title = createElement("p", ["text-center", "fs-5"], this.name);
-
-        this.mineCounter = createElement("p", ["text-center"], `Mines: ${this.grid.mines}`);
-
-        this.progressCounter = createElement("p", ["text-center"], `Progress: None`);
-
-        this.completedGrids = createElement("p", ["text-center"], `Completed: None`);
-
-        this.livesCounter = createElement("p", ["text-center"], `Lives: ${Player.startingLives}`);
+        const counterClasses = ["text-center"];
+        this.livesCounter = createElement("p", counterClasses);
+        this.completedGrids = createElement("p", counterClasses);
+        this.mineCounter = createElement("p", counterClasses);
+        this.progressCounter = createElement("p", counterClasses);
+        this.sendableCounter = createElement("p", counterClasses);
 
         this.containerFluid.append(...[
             this.title,
             this.livesCounter,
+            this.completedGrids,
             this.mineCounter,
             this.progressCounter,
-            this.completedGrids,
+            this.sendableCounter,
         ].map(PlayerDisplay.rowify));
 
         this.col.append(this.containerFluid);
@@ -55,14 +54,15 @@ class PlayerDisplay {
     }
 
     update() {
-        const { mineCounter, grid, progressCounter, completedGrids, livesCounter } = this;
-        const { unflaggedMines, progress, mines } = grid;
-        let { completed, lives } = this.player
+        const { grid, mineCounter, progressCounter, completedGrids, livesCounter, sendableCounter } = this;
+        const { unflaggedMines, revealed, mines } = grid;
+        let { completed, lives, sendableMines } = this.player
 
         livesCounter.innerHTML = `Lives: ${lives}`;
-        mineCounter.innerHTML = `Mines: ${unflaggedMines}`;
-        progressCounter.innerHTML = `Progress ${progress}/${Grid.gridArea - mines}`;
         if (grid.completed) completed ++;
         completedGrids.innerHTML = `Completed: ${completed}`;
+        mineCounter.innerHTML = `Mines: ${unflaggedMines}`;
+        progressCounter.innerHTML = `Progress ${revealed}/${Grid.gridArea - mines}`;
+        sendableCounter.innerHTML = `Sendable Mines: ${sendableMines}`;
     }
 }

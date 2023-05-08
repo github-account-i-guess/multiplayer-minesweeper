@@ -92,9 +92,14 @@ document.addEventListener("keydown", event => {
     const key = event.key.toLowerCase();
 
     if (key == 'tab') {
-        if (playerGrid.completed) player.completed ++;
-        else {
+        if (playerGrid.completed) {
+            player.completed ++;
+            player.sendableMines += playerGrid.mines;
+        } else {
             player.lives --;
+
+            const { flagged, incorrectlyFlagged } = playerGrid;
+            player.sendableMines += flagged - incorrectlyFlagged * 2;
             if (player.lives <= 0) {
                 console.log("You lost, this will do more in the future");
             }

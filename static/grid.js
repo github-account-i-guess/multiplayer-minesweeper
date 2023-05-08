@@ -82,6 +82,12 @@ class Grid {
         this.lost = false;
     }
 
+    amount(condition) {
+        return this.squares.filter(square => {
+            return square[condition];
+        }).length;
+    }
+
     get completed() {
         const { length } = this.squares;
         const completed = this.squares.filter(s => {
@@ -92,20 +98,24 @@ class Grid {
     }
 
     get mines() {
+        return this.amount("mine")
+    }
+
+    get revealed() {
+        return this.amount("revealed");
+    }
+
+    get flagged() {
+        return this.amount("flagged");
+    }
+
+    get incorrectlyFlagged() {
         return this.squares.filter(s => {
-            return s.mine;
-        }).length;
+            return s.flagged && !s.mine;
+        });
     }
 
     get unflaggedMines() {
-        return this.mines - this.squares.filter(s => {
-            return s.flagged; 
-        }).length;
-    }
-
-    get progress() {
-        return this.squares.filter(s => {
-            return s.revealed; 
-        }).length;
+        return this.mines - this.flagged;
     }
 }

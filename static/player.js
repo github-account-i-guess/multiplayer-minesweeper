@@ -2,6 +2,7 @@ class Player {
     static startingLives = 3;
 
     completed = 0;
+    sendableMines = 0;
     lives = Player.startingLives;
 
     constructor(name, grid) {
