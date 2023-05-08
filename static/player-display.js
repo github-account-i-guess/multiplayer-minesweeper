@@ -14,10 +14,12 @@ class PlayerDisplay {
         return row;
     }
 
-    constructor(container, grid, name) {
+    constructor(container, player) {
+        const { grid, name } = player;
         this.container = container;
-        this.grid = grid;
-        this.name = name;
+        this.grid = player.grid;
+        this.name = player.name;
+        this.player = player;
 
         this.build();
     }
@@ -37,8 +39,11 @@ class PlayerDisplay {
 
         this.completedGrids = createElement("p", ["text-center"], `Completed: None`);
 
+        this.livesCounter = createElement("p", ["text-center"], `Lives: ${Player.startingLives}`);
+
         this.containerFluid.append(...[
             this.title,
+            this.livesCounter,
             this.mineCounter,
             this.progressCounter,
             this.completedGrids,
@@ -49,10 +54,15 @@ class PlayerDisplay {
         this.container.append(this.col);
     }
 
-    update(completed, sendableMines) {
-        this.mineCounter.innerHTML = `Mines: ${this.grid.mines}`;
-        this.progressCounter.innerHTML = `Progress ${this.grid.progress}/${Grid.gridArea}`;
-        if (this.grid.completed) completed ++;
-        this.completedGrids.innerHTML = `Completed: ${completed}`;
+    update() {
+        const { mineCounter, grid, progressCounter, completedGrids, livesCounter } = this;
+        const { unflaggedMines, progress, mines } = grid;
+        let { completed, lives } = this.player
+
+        livesCounter.innerHTML = `Lives: ${lives}`;
+        mineCounter.innerHTML = `Mines: ${unflaggedMines}`;
+        progressCounter.innerHTML = `Progress ${progress}/${Grid.gridArea - mines}`;
+        if (grid.completed) completed ++;
+        completedGrids.innerHTML = `Completed: ${completed}`;
     }
 }

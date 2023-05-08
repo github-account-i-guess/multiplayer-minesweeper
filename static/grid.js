@@ -92,14 +92,20 @@ class Grid {
     }
 
     get mines() {
-        return Grid.mineAmount - this.squares.filter(s => {
+        return this.squares.filter(s => {
+            return s.mine;
+        }).length;
+    }
+
+    get unflaggedMines() {
+        return this.mines - this.squares.filter(s => {
             return s.flagged; 
         }).length;
     }
 
     get progress() {
         return this.squares.filter(s => {
-            return s.mine || s.revealed; 
+            return s.revealed; 
         }).length;
     }
 }

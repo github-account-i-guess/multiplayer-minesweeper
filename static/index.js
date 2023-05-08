@@ -49,8 +49,11 @@ const otherPlayerOffset = 1/otherPlayerScale;
 const playerGrid = new Grid(0, 0, 1, "rgb(100, 100, 255)", getSquares(0));
 const opponentGrid = new Grid(otherPlayerOffset, 0, 1, "rgb(255, 100, 100)", getSquares(otherPlayerOffset));
 
-const playerDisplay = new PlayerDisplay(playerDisplaysContainer, playerGrid, "You");
-const opponentDisplay = new PlayerDisplay(playerDisplaysContainer, opponentGrid, "Opponent");
+const player = new Player("You", playerGrid);
+const opponent = new Player("Opponent", opponentGrid);
+
+const playerDisplay = new PlayerDisplay(playerDisplaysContainer, player);
+const opponentDisplay = new PlayerDisplay(playerDisplaysContainer, opponent);
 
 let completedGrids = 0;
 
@@ -89,7 +92,13 @@ document.addEventListener("keydown", event => {
     const key = event.key.toLowerCase();
 
     if (key == 'tab') {
-        if (playerGrid.completed) completedGrids ++;
+        if (playerGrid.completed) player.completed ++;
+        else {
+            player.lives --;
+            if (player.lives <= 0) {
+                console.log("You lost, this will do more in the future");
+            }
+        }
         playerGrid.reset();
     }
 });
