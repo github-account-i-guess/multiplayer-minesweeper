@@ -70,8 +70,8 @@ function adjustCanvasToScreen() {
 
     const { style } = infoDiv;
     style.top = otherPlayerScale * gameCanvas.height + "px";
-    style.left = innerWidth/aspectRatio + "px";
-    style.width = innerWidth * (1 - 1/aspectRatio) + 'px';
+    style.left = gameCanvas.width/aspectRatio + "px";
+    style.width = gameCanvas.width * (1 - 1/aspectRatio) + 'px';
 }
 
 adjustCanvasToScreen();
@@ -139,3 +139,5 @@ setInterval(_ => {
 socket.on("info", info => {
     opponent.serverInfo = info;
 });
+
+socket.on("room", console.log);

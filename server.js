@@ -3,6 +3,7 @@ const path = require("path");
 const http = require('http');
 const { Server } = require('socket.io');
 const { Player } = require("./player");
+const { copyFileSync } = require("fs");
 const app = express();
 
 const server = http.createServer(app);
@@ -10,22 +11,43 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const sockets = {};
+const rooms = [];
 
 io.on("connection", socket => {
-    console.log("connection");
     const { id } = socket;
+    sockets[id] = socket;
 
-    const player = new Player(id);
-    sockets[id] = player;
+    let roomIndex = rooms.findIndex(room => {
+        return room.length < 2;
+    });
+
+    if (roomIndex == -1) {
+        roomIndex = rooms.push([]) - 1;
+    }
+    const room = rooms[roomIndex];
+    room.push(id);
+    
+    const roomName = "Room: " + roomIndex;
+    socket.join(roomName);
+
+    socket.emit("room", roomName);
+
     socket.on("info", player => {
         try {
-            const { grid, lives, completed, sendableMines } = player;
-            player.grid = grid;
-
-            socket.broadcast.emit("info", player);
+            socket.broadcast.to(roomName).emit("info", player);
         } catch (e) {
             console.error(e);
         }
+    });
+
+    socket.on("disconnect", _ => {
+        delete sockets[id];
+        rooms.forEach(room => {
+            if (room.includes(id)) {
+                room.splice(room.indexOf(id));
+            }
+        });
+        io.emit("player-disconnected");
     });
 });
 
