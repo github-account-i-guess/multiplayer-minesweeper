@@ -1,7 +1,9 @@
 const socket = io();
 
 const gameCanvas = document.querySelector("#game-canvas");
-const infoDiv = document.querySelector("#info-div")
+const infoDiv = document.querySelector("#info-div");
+const mainMenu = document.querySelector("#main-menu");
+const joinGameButton = document.querySelector("#join-game-button");
 const playerDisplaysContainer = document.querySelector("#player-displays-container");
 const gameContext = gameCanvas.getContext("2d");
 
@@ -72,6 +74,10 @@ function adjustCanvasToScreen() {
     style.top = otherPlayerScale * gameCanvas.height + "px";
     style.left = gameCanvas.width/aspectRatio + "px";
     style.width = gameCanvas.width * (1 - 1/aspectRatio) + 'px';
+
+    mainMenu.style.top = "0px";
+    mainMenu.style.left = style.left;
+    mainMenu.style.width = style.width;
 }
 
 adjustCanvasToScreen();
@@ -102,14 +108,20 @@ document.addEventListener("keydown", event => {
             player.lives --;
 
             const { flagged, incorrectlyFlagged } = playerGrid;
-            console.log(flagged, incorrectlyFlagged);
             player.sendableMines += flagged - incorrectlyFlagged * 2;
             if (player.lives <= 0) {
-                console.log("You lost, this will do more in the future");
+                socket.emit("lost");
+                gameEnd("lost")
             }
         }
         playerGrid.reset();
     }
+});
+
+let queueing = false;
+joinGameButton.addEventListener("click", event => {
+    queueing = true;
+    socket.emit("queue");
 });
 
 gameCanvas.oncontextmenu = _ => false;
@@ -137,7 +149,20 @@ setInterval(_ => {
 }, 200);
 
 socket.on("info", info => {
+    if (queueing) {
+        queueing = false;
+        mainMenu.classList.add("d-none");
+        player.reset();
+        playerGrid.reset();
+    }
     opponent.serverInfo = info;
 });
 
 socket.on("room", console.log);
+
+function gameEnd(type){
+    console.log(type);
+    mainMenu.classList.remove("d-none");
+}
+
+socket.on("game end", gameEnd);

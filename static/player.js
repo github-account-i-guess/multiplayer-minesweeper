@@ -23,4 +23,10 @@ class Player {
         this.lives = lives;
         this.grid.serverGrid = grid;
     }
+
+    reset(grid) {
+        this.completed = 0;
+        this.sendableMines = 0;
+        this.lives = Player.startingLives;
+    }
 }

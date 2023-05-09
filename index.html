@@ -19,6 +19,16 @@
         </header>
         <main>
             <canvas id="game-canvas"></canvas>
+            <div class ="position-fixed bg-light" id="main-menu">
+                <div class="container-fluid">
+                    <div class="row">
+                        <p class="text-center fs-4">Menu</p>
+                    </div>
+                    <div class="row px-2 pb-2">
+                        <button class="btn btn-primary" id="join-game-button">Join Queue!</button>
+                    </div>
+                </div>
+            </div>
             <div class="position-fixed" id="info-div">
                 <p class="fs-4 text-center">Info</p>
                 <div class="row" id="player-displays-container">
@@ -36,6 +46,10 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.min.js"
             integrity="sha384-7VPbUDkoPSGFnVtYi0QogXtr74QeVeeIs99Qfg5YCF+TidwNdjvaKZX19NZ/e6oz" crossorigin="anonymous">
+        </script>
+
+        <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js" 
+            integrity="sha256-a2yjHM4jnF9f54xUQakjZGaqYs/V1CYvWpoqZzC2/Bw=" crossorigin="anonymous">
         </script>
 
         <script src="/socket.io/socket.io.js"></script>
