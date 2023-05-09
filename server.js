@@ -12,22 +12,23 @@ const io = new Server(server);
 
 const sockets = {};
 const rooms = [];
+const players = {};
 
 function leaveRooms(id) {
     rooms.forEach((room, index) => {
         if (room.includes(id)) {
-            room.forEach(id => {
-                const socket = sockets[id];
+            room.forEach(otherId => {
+                const socket = sockets[otherId];
+                if (!socket) return;
                 socket.leave(index + "");
-                socket.emit("game end", "win");
+                if (otherId != id) {
+                    socket.emit("gameEnd", "win");
+                }
             });
 
             room.splice(0);
         }
     });
-
-    // console.log(id, "left",  rooms);
-
 }
 
 function joinRoom(socket) {
@@ -49,13 +50,9 @@ function joinRoom(socket) {
     
     room.push(id);
 
-    // console.log(id, "joined", rooms);
-
     const roomName = roomIndex + "";
 
     socket.join(roomName);
-    // console.log(id, "joining room: ", roomIndex);
-
     socket.emit("room", roomName);
 
     return roomName;
@@ -64,6 +61,7 @@ function joinRoom(socket) {
 io.on("connection", socket => {
     const { id } = socket;
     sockets[id] = socket;
+    players[id] = new Player(id);
 
     let roomName;
 
@@ -74,11 +72,41 @@ io.on("connection", socket => {
 
     socket.on("info", player => {
         if (!roomName) return;
+
+        players[id] = player;
         try {
             socket.broadcast.to(roomName).emit("info", player);
         } catch (e) {
             console.error(e);
         }
+    });
+
+    socket.on('sendMines', amount => {
+        if (!roomName) return;
+        const room = rooms[+roomName];
+        if (!(room && room.length == 2)) return; 
+
+        const playerIndex = room.indexOf(id);
+        if (playerIndex == -1) return;
+
+        const otherPlayerId = room[1 - playerIndex];
+        const otherPlayer = players[otherPlayerId];
+        const { grid } = otherPlayer;
+
+        const unmarkedGrid = grid.filter(s => {
+            return !(s.revealed || s.mine);
+        });
+
+        const { random, floor } = Math;
+        new Array(amount).fill().forEach(_ => {
+            if (!unmarkedGrid.length) return;
+            const index = floor(random() * unmarkedGrid.length);
+
+            unmarkedGrid[index].mine = true;
+            unmarkedGrid.splice(index, 1);
+        });
+
+        sockets[otherPlayerId].emit("updateGrid", grid);
     });
 
     socket.on("lost", _ => {
@@ -88,8 +116,8 @@ io.on("connection", socket => {
     });
 
     socket.on("disconnect", _ => {
-        delete sockets[id];
         leaveRooms(id);
+        delete sockets[id];
         io.emit("player-disconnected");
     });
 });

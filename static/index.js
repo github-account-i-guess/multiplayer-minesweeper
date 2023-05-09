@@ -100,21 +100,29 @@ document.addEventListener("keydown", event => {
 
     const key = event.key.toLowerCase();
 
-    if (key == 'tab') {
-        if (playerGrid.completed) {
-            player.completed ++;
-            player.sendableMines += playerGrid.mines;
-        } else {
-            player.lives --;
-
-            const { flagged, incorrectlyFlagged } = playerGrid;
-            player.sendableMines += flagged - incorrectlyFlagged * 2;
-            if (player.lives <= 0) {
-                socket.emit("lost");
-                gameEnd("lost")
+    switch(key) {
+        case 'tab':
+            if (playerGrid.completed) {
+                player.completed ++;
+                player.sendableMines += playerGrid.mines;
+            } else {
+                player.lives --;
+    
+                const { flagged, incorrectlyFlagged } = playerGrid;
+                player.sendableMines += flagged - incorrectlyFlagged * 2;
+                if (player.lives <= 0) {
+                    socket.emit("lost");
+                    gameEnd("lost")
+                }
             }
-        }
-        playerGrid.reset();
+            playerGrid.reset();
+            break;
+        case ' ':
+            if (player.sendableMines > 0) {
+                player.sendableMines --;
+                socket.emit("sendMines", 1);
+            }
+            break;
     }
 });
 
@@ -158,11 +166,15 @@ socket.on("info", info => {
     opponent.serverInfo = info;
 });
 
+socket.on("updateGrid", grid => {
+    playerGrid.serverGrid = grid;
+});
+
 socket.on("room", console.log);
 
 function gameEnd(type){
-    console.log(type);
+    alert("You " + type);
     mainMenu.classList.remove("d-none");
 }
 
-socket.on("game end", gameEnd);
+socket.on("gameEnd", gameEnd);
