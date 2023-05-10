@@ -1,11 +1,20 @@
 class Grid {
     // static density = 99 / (16 * 30);
-    static density = 75 / (16* 30);
+    // static density = 75 / (16* 30);
+    static mode = "normal";
+    static get density() {
+        const expertGridSize = (16 * 30);
+        const { mode } = this;
+        const numerator = mode == "normal" ? 75 : mode == "weird" ? 150 : 99;
+        return numerator / expertGridSize; 
+    } 
     static gridSize = 15;
 
     static gridArea = this.gridSize ** 2;
 
-    static mineAmount = Math.round(this.density * this.gridArea);
+    static get mineAmount () {
+        return Math.round(this.density * this.gridArea);
+    } 
 
 
     static get emptyArray() {
@@ -42,23 +51,27 @@ class Grid {
         if (!square) return;
         if (!this.populated && e.which == 1) {
             this.populateGrid(square);
+            if (Grid.mode == "normal") {
+                square.onClick(x, y, e);
+            }
+        } else {
+            square.onClick(x, y, e);
         };
-
-        square.onClick(x, y, e);
 
         if (this.completed) console.log("completed");
     }
 
     populateGrid(safeSquare) {
         const { adjacentSquares } = safeSquare;
-        const safeSquares = [safeSquare, ...adjacentSquares];
+        const { mode, mineAmount } = Grid;
+        const safeSquares = mode == "weird" ? [] : [safeSquare, ...adjacentSquares];
         const squares = this.squares.filter(square => {
             return !safeSquares.includes(square);
         });
 
         const { floor, random } = Math;
 
-        new Array(Grid.mineAmount).fill().forEach(_ => {
+        new Array(mineAmount).fill().forEach(_ => {
             const { length } = squares;
             const index = floor(random() * length);
 
@@ -68,6 +81,17 @@ class Grid {
             squares.splice(index, 1);
         });
 
+        if (mode == "weird") {
+            const normalSquares = this.squares.filter(s => {
+                return !s.mine && s.adjacentMines.length && random() < 1/2;
+            });
+    
+            normalSquares.forEach(s => {
+                s.onClick(0, 0, { which: 1 });
+            });
+        }
+
+        safeSquare.mine = false;
         this.populated = true;
     }
 

@@ -102,6 +102,7 @@ document.addEventListener("keydown", event => {
 
     switch(key) {
         case 'tab':
+            event.preventDefault();
             if (playerGrid.completed) {
                 player.completed ++;
                 player.sendableMines += playerGrid.mines;
