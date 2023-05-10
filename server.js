@@ -33,14 +33,21 @@ function leaveRooms(id) {
 
 function joinRoom(socket) {
     const { id } = socket;
+    const player = players[id];
 
 
     let roomIndex = rooms.findIndex(room => {
-        return room.length == 1 && !room.includes(id);
+        if (room.length == 1 && !room.includes(id)) {
+            const [ otherId ] = room;
+            const otherPlayer = players[otherId];
+            const { mode } = otherPlayer;
+            console.log(mode, player.mode, mode == player.mode);
+            return player.mode == mode;
+        };
     });
 
     if (roomIndex == -1) roomIndex = rooms.findIndex(room => {
-        return room.length < 2;
+        return room.length == 0;
     });
 
     if (roomIndex == -1) {
@@ -65,15 +72,15 @@ io.on("connection", socket => {
 
     let roomName;
 
-    socket.on("queue", _ => {
+    socket.on("queue", mode => {
+        players[id].mode = mode;
         leaveRooms(id);
         roomName = joinRoom(socket);
     })
 
     socket.on("info", player => {
         if (!roomName) return;
-
-        players[id] = player;
+        Object.assign(players[id], player);
         try {
             socket.broadcast.to(roomName).emit("info", player);
         } catch (e) {

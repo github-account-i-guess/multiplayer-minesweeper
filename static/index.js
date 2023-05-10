@@ -3,7 +3,9 @@ const socket = io();
 const gameCanvas = document.querySelector("#game-canvas");
 const infoDiv = document.querySelector("#info-div");
 const mainMenu = document.querySelector("#main-menu");
-const joinGameButton = document.querySelector("#join-game-button");
+const joinNormalButton = document.querySelector("#join-normal-button");
+const joinWeirdButton = document.querySelector("#join-weird-button");
+
 const playerDisplaysContainer = document.querySelector("#player-displays-container");
 const gameContext = gameCanvas.getContext("2d");
 
@@ -128,10 +130,13 @@ document.addEventListener("keydown", event => {
 });
 
 let queueing = false;
-joinGameButton.addEventListener("click", event => {
+const joinGame = mode => event => {
+    Grid.mode = mode;
     queueing = true;
-    socket.emit("queue");
-});
+    socket.emit("queue", mode);
+}
+joinNormalButton.addEventListener("click", joinGame("normal"));
+joinWeirdButton.addEventListener("click", joinGame("weird"));
 
 gameCanvas.oncontextmenu = _ => false;
 

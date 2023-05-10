@@ -1,4 +1,5 @@
 class Player {
+    mode = "unset";
     constructor(id) {
         this.id = id;
         this.grid = [];
