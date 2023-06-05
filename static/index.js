@@ -227,6 +227,9 @@ const joinGame = mode => event => {
     Grid.mode = mode;
     mainMenu.classList.add("d-none");
     player.reset();
+    playerGrid.squares.forEach(square => {
+        square.enemy = undefined;
+    });
     enemies.splice(0);
     spawnEnemies(5);
     playerGrid.reset();
