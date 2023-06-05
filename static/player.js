@@ -3,11 +3,12 @@ class Player extends Entity {
 
     completed = 0;
     mines = 0;
-    constructor(name, grid) {
+    constructor(name, grid, abilities) {
         super(7, 7, "orange");
         this.name = name;
         this.grid = grid;
         this.health = Player.startingHealth;
+        this.abilities = abilities;
     }
 
     // get serverInfo() {

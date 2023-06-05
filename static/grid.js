@@ -149,22 +149,7 @@ class Grid {
         return this.mines - this.flagged;
     }
 
-    get serverGrid() {
-        return this.squares.map(s => {
-            const { revealed, flagged, mine } = s;
-            return { revealed, flagged, mine };
-        });
-    }
-
-    set serverGrid(grid) {
-        this.squares = grid.map((s, index) => {
-            const { revealed, flagged, mine } = s;
-            const square = this.squares[index];
-            square.revealed = revealed;
-            square.flagged = flagged;
-            square.mine = mine;
-
-            return square;
-        });
+    get hiddenEnemies() {
+        return this.squares.filter(s => s.enemy);
     }
 }

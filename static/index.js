@@ -51,7 +51,16 @@ const otherPlayerScale = 0.5;
 const otherPlayerOffset = 1/otherPlayerScale;
 
 const playerGrid = new Grid(0, 0, 1, "rgb(100, 100, 255)", getSquares(0));
-const player = new Player("You", playerGrid);
+const { aoeThingy, berserkerThingy, tacticalNuke, heal } = Ability.abilities;
+const playerAbilities = {
+    up: aoeThingy,
+    down: berserkerThingy,
+    left: tacticalNuke,
+    right: heal,
+    slash: heal,
+}
+
+const player = new Player("You", playerGrid, playerAbilities);
 const playerDisplay = new PlayerDisplay(playerDisplaysContainer, player);
 
 let completedGrids = 0;
@@ -141,50 +150,16 @@ function nextLevel() {
     playerGrid.reset();
 };
 
-function enemiesInRange(range) {
-    return enemies.filter(e => {
-        return Enemy.checkRange(e, player, range);
-    });
-}
-
-const animations = []
-function attackAnimation(entity, range, color) {
-    const { size: entitySize } = entity.square;
-    const animationTime = 30;
-    const animation = new Animation((context, scale, time) => {
-        const size = range * 2 * time/30;
-        const x = entity.x - size/2 + entitySize/2;
-        const y = entity.y - size/2 + entitySize/2;
-
-        const square = new Square(x, y, size, color);
-        square.draw(context, scale);
-    }, animationTime)
-    animations.push(animation);
-}
-
-function attack(range, damage, color, aoe) {
-    const inRange = enemiesInRange(range).sort((a, b) => {
-        return a.health - b.health;
-    });
-    attackAnimation(player, range, color);
-
-    if (aoe) {
-        inRange.forEach(e => {
-            e.health -= damage;
-        })
-    } else {
-        const enemy = inRange[0];
-        if (enemy) {
-            enemy.health -= damage;
-        } 
-    }
-}
+const animations = [];
 
 document.addEventListener("keyup", event => {
     try { event.key.toLowerCase() } catch { return }
 
     const key = event.key.toLowerCase();
     keysPressed[key] = false;
+    const { abilities } = player;
+    const { slash, up, left, down, right } = abilities;
+
     switch(key) {
         case "`":
             event.preventDefault();
@@ -197,25 +172,19 @@ document.addEventListener("keyup", event => {
             simulateClick(player.gridX, player.gridY, 3);
             break;
         case "arrowup":
-            attack(0.05, 1, "rgba(30, 30, 255, 0.5)", true);
+            up.activate(player);
             break;
         case "arrowdown":
-            const { health } = player;
-            const damage = (100 - health)/10;
-            attack(0.01, damage, "rgba(100, 0, 0, 0.9)", false);
+            down.activate(player);
             break;
         case "arrowleft":
-            if (player.health > 1) {
-                attack(1, 100, "rgba(0, 0, 0, 0.5)", true);
-                player.health = 1;
-                break;
-            }
+            left.activate(player);
+            break;
+        case "arrowright":
+            right.activate(player);
+            break;
         case "/":
-            const { mines } = player;
-            if (mines >= 1) {
-                player.mines --;
-                player.health ++
-            }
+            slash.activate(player);
             break;
         default:
             break;
