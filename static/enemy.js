@@ -1,7 +1,7 @@
 class Enemy extends Entity {
     static standardMove(player) {
-        this.squareX += 0.25 * Math.sign(player.x - this.x);
-        this.squareY += 0.25 * Math.sign(player.y - this.y);
+        this.squareX += Math.random()/2 * Math.sign(player.x - this.x);
+        this.squareY += Math.random()/2 * Math.sign(player.y - this.y);
     }
 
     static checkRange = (a, b, range) => {
@@ -11,9 +11,9 @@ class Enemy extends Entity {
     }
 
     static standardAttack = (self, player) => {
-        const inRange = Enemy.checkRange(self, player, this.range);
+        const inRange = Enemy.checkRange(self, player, self.range);
         if (!inRange) return;
-        
+        attackAnimation(self, self.range, self.square.color);
         player.health -= 0.25;
     };
 

@@ -101,7 +101,7 @@ document.addEventListener("keydown", event => {
 
 const enemies = [];
 function randomCoordinate() {
-    return Math.random() * Grid.gridSize;
+    return Math.floor(Math.random() * Grid.gridSize);
 }
 
 function spawnEnemies(amount) {
@@ -109,7 +109,15 @@ function spawnEnemies(amount) {
         const randX = randomCoordinate();
         const randY = randomCoordinate();
         const health = Math.round(10 + 10 * Math.random());
-        enemies.push(new Enemy(randX, randY, health, 0.03, Enemy.standardMove, Enemy.standardAttack, "red"));
+        const enemy = new Enemy(randX, randY, health, 0.03, Enemy.standardMove, Enemy.standardAttack, "red");
+        const { x, y } = enemy;
+        const square = playerGrid.squares.find(s => {
+            return s.gridX == randX &&
+                s.gridY == randY;
+        });
+
+        if (square.enemy) i --;
+        else square.enemy = enemy;
     }
 } 
 
@@ -127,7 +135,7 @@ function nextLevel() {
         }
     }
     enemies.splice(0);
-    spawnEnemies(1 + player.completed);
+    spawnEnemies(5 * (1 + player.completed));
     playerGrid.reset();
 };
 
@@ -135,6 +143,14 @@ function enemiesInRange(range) {
     return enemies.filter(e => {
         return Enemy.checkRange(e, player, range);
     });
+}
+
+const animations = []
+function attackAnimation(entity, range, color) {
+    const { size } = entity.square;
+    const x = entity.x - range + size/2;
+    const y = entity.y - range + size/2;
+    animations.push(new Square(x, y, range * 2, color));
 }
 
 document.addEventListener("keyup", event => {
@@ -153,11 +169,20 @@ document.addEventListener("keyup", event => {
         case "shift":
             simulateClick(player.gridX, player.gridY, 3);
             break;
-        case "1":
-            const inRange = enemiesInRange(0.05);
-            inRange.forEach(enemy => {
-                enemy.health --;
+        case "arrowup":
+            const range = 0.05;
+            const inRange = enemiesInRange(range).sort((a, b) => {
+                return a.health - b.health;
             });
+            attackAnimation(player, range, "blue");
+            const enemy = inRange[0];
+            if (enemy) {
+                // attackAnimation(enemy, range, "green");
+                enemy.health --;
+            }
+            // inRange.forEach(enemy => {
+            //     enemy.health --;
+            // });
         default:
             break;
 
@@ -169,7 +194,7 @@ const joinGame = mode => event => {
     mainMenu.classList.add("d-none");
     player.reset();
     enemies.splice(0);
-    spawnEnemies(1);
+    spawnEnemies(5);
     playerGrid.reset();
 }
 
@@ -211,13 +236,13 @@ setInterval(_ => {
         enemies.forEach((enemy, _, array) => {
             enemy.onTick(player);
             boundsCheck(enemy);
-            if (enemy.health < 0) {
+            if (enemy.health <= 0) {
                 const index = array.indexOf(enemy);
-                enemies.splice(index);
+                enemies.splice(index, 1);
             }
         });
 
-        if (player.health < 0) {
+        if (player.health <= 0) {
             nextLevel();
             player.health = Player.startingHealth;
         }
@@ -232,6 +257,9 @@ setInterval(_ => {
     gameContext.clearRect(0, 0, width, height);
 
     playerGrid.draw(gameContext, height);
+    animations.forEach(a => {
+        a.draw(gameContext, height);
+    });
 
     enemies.forEach(enemy => {
         enemy.draw(gameContext, height);
@@ -239,6 +267,8 @@ setInterval(_ => {
 
     playerDisplay.update(completedGrids, 0);
     player.draw(gameContext, height);
+
+    animations.splice(0);
 }, 1000/60);
 
 function listen(key, func) {

@@ -58,7 +58,10 @@ class Grid {
             square.onClick(x, y, e);
         };
 
-        if (this.completed) console.log("completed");
+        if (this.completed) {
+            animations.push(new Square(0, 0, 1, "green"));
+            console.log("completed");
+        }
     }
 
     populateGrid(safeSquare) {

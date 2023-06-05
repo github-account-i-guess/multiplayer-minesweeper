@@ -21,6 +21,7 @@ class GridSquare {
         this.flagged = false;
         this.gridX = gridX;
         this.gridY = gridY;
+        this.enemy;
     }
 
     draw(context, scale) {
@@ -108,6 +109,9 @@ class GridSquare {
             return;
         }
 
+        if (this.enemy) {
+            enemies.push(this.enemy);
+        }
 
         const { length } = this.adjacentMines;
 
