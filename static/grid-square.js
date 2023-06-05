@@ -111,6 +111,7 @@ class GridSquare {
 
         if (this.enemy) {
             enemies.push(this.enemy);
+            this.enemy = undefined;
         }
 
         const { length } = this.adjacentMines;

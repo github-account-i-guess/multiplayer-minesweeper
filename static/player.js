@@ -1,10 +1,8 @@
 class Player extends Entity {
-    static startingLives = 3;
     static startingHealth = 100;
 
     completed = 0;
-    sendableMines = 0;
-    lives = Player.startingLives;
+    mines = 0;
     constructor(name, grid) {
         super(7, 7, "orange");
         this.name = name;
@@ -13,22 +11,22 @@ class Player extends Entity {
     }
 
     // get serverInfo() {
-    //     const { completed, sendableMines, lives, grid } = this;
+    //     const { completed, mines, lives, grid } = this;
     //     const { serverGrid } = grid;
-    //     return { completed, sendableMines, lives, grid: serverGrid };
+    //     return { completed, mines, lives, grid: serverGrid };
     // }
 
     // set serverInfo(info) {
-    //     const { completed, sendableMines, lives, grid } = info;
+    //     const { completed, mines, lives, grid } = info;
     //     this.completed = completed;
-    //     this.sendableMines = sendableMines;
+    //     this.mines = mines;
     //     this.lives = lives;
     //     this.grid.serverGrid = grid;
     // }
 
     reset(grid) {
         this.completed = 0;
-        this.sendableMines = 0;
+        this.mines = 0;
         this.lives = Player.startingLives;
     }
 }

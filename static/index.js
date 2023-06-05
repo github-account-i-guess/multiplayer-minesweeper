@@ -109,14 +109,16 @@ function spawnEnemies(amount) {
         const randX = randomCoordinate();
         const randY = randomCoordinate();
         const health = Math.round(10 + 10 * Math.random());
-        const enemy = new Enemy(randX, randY, health, 0.03, Enemy.standardMove, Enemy.standardAttack, "red");
-        const { x, y } = enemy;
+
+        const attack = Enemy.standardAttack("rgba(200, 50, 50, 0.1)", Math.random()/2);
+
+        const enemy = new Enemy(randX, randY, health, 0.03, Enemy.standardMove, attack, "rgb(200, 10, 10)");
         const square = playerGrid.squares.find(s => {
             return s.gridX == randX &&
                 s.gridY == randY;
         });
 
-        if (square.enemy) i --;
+        if (square.enemy) enemies.push(enemy);//i --;
         else square.enemy = enemy;
     }
 } 
@@ -124,15 +126,15 @@ function spawnEnemies(amount) {
 function nextLevel() {
     if (playerGrid.completed) {
         player.completed ++;
-        player.sendableMines += playerGrid.mines;
+        player.mines += playerGrid.mines;
     } else {
-        player.lives --;
+        // player.lives --;
 
         const { flagged, incorrectlyFlagged } = playerGrid;
-        player.sendableMines += flagged - incorrectlyFlagged * 2;
-        if (player.lives <= 0) {
-            gameEnd("lost")
-        }
+        player.mines += flagged - incorrectlyFlagged * 2;
+        // if (player.lives <= 0) {
+        //     gameEnd("lost")
+        // }
     }
     enemies.splice(0);
     spawnEnemies(5 * (1 + player.completed));
@@ -147,10 +149,35 @@ function enemiesInRange(range) {
 
 const animations = []
 function attackAnimation(entity, range, color) {
-    const { size } = entity.square;
-    const x = entity.x - range + size/2;
-    const y = entity.y - range + size/2;
-    animations.push(new Square(x, y, range * 2, color));
+    const { size: entitySize } = entity.square;
+    const animationTime = 30;
+    const animation = new Animation((context, scale, time) => {
+        const size = range * 2 * time/30;
+        const x = entity.x - size/2 + entitySize/2;
+        const y = entity.y - size/2 + entitySize/2;
+
+        const square = new Square(x, y, size, color);
+        square.draw(context, scale);
+    }, animationTime)
+    animations.push(animation);
+}
+
+function attack(range, damage, color, aoe) {
+    const inRange = enemiesInRange(range).sort((a, b) => {
+        return a.health - b.health;
+    });
+    attackAnimation(player, range, color);
+
+    if (aoe) {
+        inRange.forEach(e => {
+            e.health -= damage;
+        })
+    } else {
+        const enemy = inRange[0];
+        if (enemy) {
+            enemy.health -= damage;
+        } 
+    }
 }
 
 document.addEventListener("keyup", event => {
@@ -170,19 +197,26 @@ document.addEventListener("keyup", event => {
             simulateClick(player.gridX, player.gridY, 3);
             break;
         case "arrowup":
-            const range = 0.05;
-            const inRange = enemiesInRange(range).sort((a, b) => {
-                return a.health - b.health;
-            });
-            attackAnimation(player, range, "blue");
-            const enemy = inRange[0];
-            if (enemy) {
-                // attackAnimation(enemy, range, "green");
-                enemy.health --;
+            attack(0.05, 1, "rgba(30, 30, 255, 0.5)", true);
+            break;
+        case "arrowdown":
+            const { health } = player;
+            const damage = (100 - health)/10;
+            attack(0.01, damage, "rgba(100, 0, 0, 0.9)", false);
+            break;
+        case "arrowleft":
+            if (player.health > 1) {
+                attack(1, 100, "rgba(0, 0, 0, 0.5)", true);
+                player.health = 1;
+                break;
             }
-            // inRange.forEach(enemy => {
-            //     enemy.health --;
-            // });
+        case "/":
+            const { mines } = player;
+            if (mines >= 1) {
+                player.mines --;
+                player.health ++
+            }
+            break;
         default:
             break;
 
@@ -243,7 +277,8 @@ setInterval(_ => {
         });
 
         if (player.health <= 0) {
-            nextLevel();
+            gameEnd("lost");
+            // nextLevel();
             player.health = Player.startingHealth;
         }
     }
@@ -257,8 +292,12 @@ setInterval(_ => {
     gameContext.clearRect(0, 0, width, height);
 
     playerGrid.draw(gameContext, height);
-    animations.forEach(a => {
-        a.draw(gameContext, height);
+    animations.forEach((a, _ , arr) => {
+        a.animate(gameContext, height);
+        if (!a.time) {
+            const index = animations.indexOf(a);
+            animations.splice(index, 1);
+        }
     });
 
     enemies.forEach(enemy => {
@@ -268,7 +307,6 @@ setInterval(_ => {
     playerDisplay.update(completedGrids, 0);
     player.draw(gameContext, height);
 
-    animations.splice(0);
 }, 1000/60);
 
 function listen(key, func) {

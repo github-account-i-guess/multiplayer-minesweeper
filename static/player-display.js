@@ -33,7 +33,6 @@ class PlayerDisplay {
 
         this.title = createElement("p", ["text-center", "fs-5"], this.name);
         const counterClasses = ["text-center"];
-        this.livesCounter = createElement("p", counterClasses);
         this.healthCounter =  createElement("p", counterClasses);
         this.completedGrids = createElement("p", counterClasses);
         this.mineCounter = createElement("p", counterClasses);
@@ -43,7 +42,6 @@ class PlayerDisplay {
 
         this.containerFluid.append(...[
             this.title,
-            this.livesCounter,
             this.healthCounter,
             this.completedGrids,
             this.mineCounter,
@@ -59,14 +57,13 @@ class PlayerDisplay {
     update() {
         const { grid, mineCounter, progressCounter, completedGrids, livesCounter, healthCounter, sendableCounter } = this;
         const { unflaggedMines, revealed, mines } = grid;
-        let { completed, lives, sendableMines, health } = this.player
+        let { completed, mines: playerMines, health } = this.player
 
-        livesCounter.innerHTML = `Lives: ${lives}`;
-        healthCounter.innerHTML = `Health: ${health}`;
+        healthCounter.innerHTML = `Health: ${Math.round(health)}`;
         if (grid.completed) completed ++;
         completedGrids.innerHTML = `Completed: ${completed}`;
-        mineCounter.innerHTML = `Mines: ${unflaggedMines}`;
+        mineCounter.innerHTML = `Remaining Mines: ${unflaggedMines}`;
         progressCounter.innerHTML = `Progress ${revealed}/${Grid.gridArea - mines}`;
-        sendableCounter.innerHTML = `Mines: ${sendableMines}`;
+        sendableCounter.innerHTML = `Your Mines: ${playerMines}`;
     }
 }

@@ -10,11 +10,11 @@ class Enemy extends Entity {
         return dX < range && dY < range;
     }
 
-    static standardAttack = (self, player) => {
+    static standardAttack = (color, damage) => (self, player) => {
         const inRange = Enemy.checkRange(self, player, self.range);
         if (!inRange) return;
-        attackAnimation(self, self.range, self.square.color);
-        player.health -= 0.25;
+        attackAnimation(self, self.range, color);
+        player.health -= damage;
     };
 
     /**

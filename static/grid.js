@@ -59,7 +59,10 @@ class Grid {
         };
 
         if (this.completed) {
-            animations.push(new Square(0, 0, 1, "green"));
+            const square = new Square(0, 0, 1, "rgba(0, 255, 0, 0.5)");
+            animations.push(new Animation((context, scale, time) => {
+                square.draw(context, scale);
+            }, 60));
             console.log("completed");
         }
     }
