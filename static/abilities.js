@@ -8,7 +8,7 @@ function attackAnimation(entity, range, color) {
 
         const square = new Square(x, y, size, color);
         square.draw(context, scale);
-    }, animationTime)
+    }, animationTime);
     animations.push(animation);
 }
 
@@ -40,7 +40,7 @@ function attack(range, damage, color, aoe) {
 class Ability {
     static abilities = {
         aoeThingy: new Ability(player => {
-            attack(0.05, 1, "rgba(30, 30, 255, 0.5)", true);
+            attack(0.05, 2, "rgba(30, 30, 255, 0.5)", true);
         }),
         berserkerThingy: new Ability(player => {
             const { health } = player;
@@ -52,6 +52,26 @@ class Ability {
                 attack(1, 100, "rgba(0, 0, 0, 0.5)", true);
                 player.health = 1;
             }
+        }),
+        dash: new Ability(player => {
+            const range = 0.1;
+            const inRange = enemiesInRange(range);
+            function generateAction(direction, sign) {
+                return _ => {
+                    player[direction] += 10 * sign;
+                    inRange.forEach(e => {
+                        e[direction] += 30 * sign;
+                        e.health --;
+                    });
+                }
+            }
+
+            listen("a", generateAction("squareX", -1));
+            listen("d", generateAction("squareX", 1));
+            listen("w", generateAction("squareY", -1));
+            listen("s", generateAction("squareY", 1));
+
+            attackAnimation(player, range, "rgba(125, 125, 125, 0.5)")
         }),
         heal: new Ability(player => {
             const { mines } = player;

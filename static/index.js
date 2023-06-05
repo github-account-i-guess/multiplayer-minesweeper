@@ -51,12 +51,12 @@ const otherPlayerScale = 0.5;
 const otherPlayerOffset = 1/otherPlayerScale;
 
 const playerGrid = new Grid(0, 0, 1, "rgb(100, 100, 255)", getSquares(0));
-const { aoeThingy, berserkerThingy, tacticalNuke, heal } = Ability.abilities;
+const { aoeThingy, berserkerThingy, tacticalNuke, heal, dash } = Ability.abilities;
 const playerAbilities = {
     up: aoeThingy,
     down: berserkerThingy,
     left: tacticalNuke,
-    right: heal,
+    end: dash,
     slash: heal,
 }
 
@@ -158,7 +158,7 @@ document.addEventListener("keyup", event => {
     const key = event.key.toLowerCase();
     keysPressed[key] = false;
     const { abilities } = player;
-    const { slash, up, left, down, right } = abilities;
+    const { slash, up, left, down, end } = abilities;
 
     switch(key) {
         case "`":
@@ -180,8 +180,8 @@ document.addEventListener("keyup", event => {
         case "arrowleft":
             left.activate(player);
             break;
-        case "arrowright":
-            right.activate(player);
+        case "end":
+            end.activate(player);
             break;
         case "/":
             slash.activate(player);
