@@ -10,7 +10,7 @@ class GridSquare {
         [8]: "rgb(128, 128, 128)"
     }
 
-    constructor(x, y, size) {
+    constructor(x, y, size, gridX, gridY) {
         this.square = new Square(x, y, size, "rgb(215, 215, 215)");
         this.text = new CanvasText({ x, y, height: size - 0.01 }, "", "");
 
@@ -19,6 +19,8 @@ class GridSquare {
         this.mine = false; 
         this.revealed = false;
         this.flagged = false;
+        this.gridX = gridX;
+        this.gridY = gridY;
     }
 
     draw(context, scale) {

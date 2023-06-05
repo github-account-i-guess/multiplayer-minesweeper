@@ -12,7 +12,6 @@ class Square {
         const scaledX = scale * x;
         const scaledY = scale * y;
         const scaledSize = scale * size;
-
         context.fillStyle = color;
         context.fillRect(scaledX, scaledY, scaledSize, scaledSize);
     }

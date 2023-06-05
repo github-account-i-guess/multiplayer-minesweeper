@@ -41,7 +41,7 @@ function joinRoom(socket) {
             const [ otherId ] = room;
             const otherPlayer = players[otherId];
             const { mode } = otherPlayer;
-            console.log(mode, player.mode, mode == player.mode);
+            // console.log(mode, player.mode, mode == player.mode);
             return player.mode == mode;
         };
     });
@@ -88,7 +88,7 @@ io.on("connection", socket => {
         }
     });
 
-    socket.on('sendMines', amount => {
+    const getOpponentIdGrid = () => {
         if (!roomName) return;
         const room = rooms[+roomName];
         if (!(room && room.length == 2)) return; 
@@ -99,6 +99,36 @@ io.on("connection", socket => {
         const otherPlayerId = room[1 - playerIndex];
         const otherPlayer = players[otherPlayerId];
         const { grid } = otherPlayer;
+        return { grid, otherPlayerId };
+    }
+
+    const randInt = max => {
+        const { random, floor } = Math;
+        return floor(random() * max);
+    }
+
+    socket.on("hideTiles", amount => {
+        const { grid, otherPlayerId } = getOpponentIdGrid();
+        const revealed = grid.filter(s => {
+            return s.revealed;
+        });
+
+        new Array(amount).fill().forEach(_ => {
+            const { length } = revealed;
+
+            if (!length) return;
+            const index = randInt(length);
+
+            const square = revealed[index];
+            square.revealed = false;
+            revealed.splice(index, 1);
+        });
+
+        sockets[otherPlayerId].emit("updateGrid", grid);
+    });
+
+    socket.on('sendMines', amount => {
+        const { grid, otherPlayerId} = getOpponentIdGrid();
 
         const unmarkedGrid = grid.filter(s => {
             return !(s.revealed || s.mine);
@@ -106,10 +136,13 @@ io.on("connection", socket => {
 
         const { random, floor } = Math;
         new Array(amount).fill().forEach(_ => {
-            if (!unmarkedGrid.length) return;
-            const index = floor(random() * unmarkedGrid.length);
+            const { length } = unmarkedGrid;
 
-            unmarkedGrid[index].mine = true;
+            if (!length) return;
+            const index = randInt(length);
+            const square = unmarkedGrid[index];
+            square.mine = true;
+            // if (square.revealed) square.revealed = false;
             unmarkedGrid.splice(index, 1);
         });
 

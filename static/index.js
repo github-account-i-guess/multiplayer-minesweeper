@@ -1,10 +1,7 @@
-const socket = io();
-
 const gameCanvas = document.querySelector("#game-canvas");
 const infoDiv = document.querySelector("#info-div");
 const mainMenu = document.querySelector("#main-menu");
-const joinNormalButton = document.querySelector("#join-normal-button");
-const joinWeirdButton = document.querySelector("#join-weird-button");
+const startGameButton = document.querySelector("#start-game-button");
 
 const playerDisplaysContainer = document.querySelector("#player-displays-container");
 const gameContext = gameCanvas.getContext("2d");
@@ -13,11 +10,11 @@ const { gridSize } = Grid;
 const margin = 1/100;
 const gridSquareSize = 1/gridSize - margin;
 
-function getSquares(offset){
+function getSquares(offset) {
     const squares = Grid.emptyArray.map((_, y) => {
         return Grid.emptyArray.map((_, x) => {
             const hMargin = margin/2;
-            return new GridSquare(x/gridSize + hMargin + offset, y/gridSize + hMargin, gridSquareSize);
+            return new GridSquare(x/gridSize + hMargin + offset, y/gridSize + hMargin, gridSquareSize, x, y);
         });
     }).flat();
 
@@ -54,13 +51,8 @@ const otherPlayerScale = 0.5;
 const otherPlayerOffset = 1/otherPlayerScale;
 
 const playerGrid = new Grid(0, 0, 1, "rgb(100, 100, 255)", getSquares(0));
-const opponentGrid = new Grid(otherPlayerOffset, 0, 1, "rgb(255, 100, 100)", getSquares(otherPlayerOffset));
-
 const player = new Player("You", playerGrid);
-const opponent = new Player("Opponent", opponentGrid);
-
 const playerDisplay = new PlayerDisplay(playerDisplaysContainer, player);
-const opponentDisplay = new PlayerDisplay(playerDisplaysContainer, opponent);
 
 let completedGrids = 0;
 
@@ -85,63 +77,154 @@ function adjustCanvasToScreen() {
 adjustCanvasToScreen();
 window.addEventListener("resize", adjustCanvasToScreen);
 
-gameCanvas.addEventListener("mousedown", event => {
-    const { pageX, pageY } = event;
-    const { width, height } = gameCanvas;
+// gameCanvas.addEventListener("mousedown", event => {
+//     const { pageX, pageY } = event;
+//     const { width, height } = gameCanvas;
 
-    const scaledX = pageX/height;
-    const scaledY = pageY/height;
+//     const scaledX = pageX/height;
+//     const scaledY = pageY/height;
+//     if (scaledX <= 1) playerGrid.onClick(scaledX, scaledY, event);
+// });
 
-    // const grid = scaledX <= 1 ? playerGrid : opponentGrid;
-    // grid.onClick(scaledX, scaledY, event);
-    if (scaledX <= 1) playerGrid.onClick(scaledX, scaledY, event);
-});
+function simulateClick(x, y, which) {
+    playerGrid.onClick(x, y, { which });
+}
+
+const keysPressed = {};
 
 document.addEventListener("keydown", event => {
     try { event.key.toLowerCase() } catch { return }
 
     const key = event.key.toLowerCase();
+    keysPressed[key] = true;
+});
 
+const enemies = [];
+function randomCoordinate() {
+    return Math.random() * Grid.gridSize;
+}
+
+function spawnEnemies(amount) {
+    for (i = 0; i < amount; i ++) {
+        const randX = randomCoordinate();
+        const randY = randomCoordinate();
+        const health = Math.round(10 + 10 * Math.random());
+        enemies.push(new Enemy(randX, randY, health, 0.03, Enemy.standardMove, Enemy.standardAttack, "red"));
+    }
+} 
+
+function nextLevel() {
+    if (playerGrid.completed) {
+        player.completed ++;
+        player.sendableMines += playerGrid.mines;
+    } else {
+        player.lives --;
+
+        const { flagged, incorrectlyFlagged } = playerGrid;
+        player.sendableMines += flagged - incorrectlyFlagged * 2;
+        if (player.lives <= 0) {
+            gameEnd("lost")
+        }
+    }
+    enemies.splice(0);
+    spawnEnemies(1 + player.completed);
+    playerGrid.reset();
+};
+
+function enemiesInRange(range) {
+    return enemies.filter(e => {
+        return Enemy.checkRange(e, player, range);
+    });
+}
+
+document.addEventListener("keyup", event => {
+    try { event.key.toLowerCase() } catch { return }
+
+    const key = event.key.toLowerCase();
+    keysPressed[key] = false;
     switch(key) {
-        case 'tab':
+        case "`":
             event.preventDefault();
-            if (playerGrid.completed) {
-                player.completed ++;
-                player.sendableMines += playerGrid.mines;
-            } else {
-                player.lives --;
-    
-                const { flagged, incorrectlyFlagged } = playerGrid;
-                player.sendableMines += flagged - incorrectlyFlagged * 2;
-                if (player.lives <= 0) {
-                    socket.emit("lost");
-                    gameEnd("lost")
-                }
-            }
-            playerGrid.reset();
+            nextLevel();
             break;
-        case ' ':
-            if (player.sendableMines > 0) {
-                player.sendableMines --;
-                socket.emit("sendMines", 1);
-            }
+        case "enter":
+            simulateClick(player.gridX, player.gridY, 1);
             break;
+        case "shift":
+            simulateClick(player.gridX, player.gridY, 3);
+            break;
+        case "1":
+            const inRange = enemiesInRange(0.05);
+            inRange.forEach(enemy => {
+                enemy.health --;
+            });
+        default:
+            break;
+
     }
 });
 
-let queueing = false;
 const joinGame = mode => event => {
     Grid.mode = mode;
-    queueing = true;
-    socket.emit("queue", mode);
+    mainMenu.classList.add("d-none");
+    player.reset();
+    enemies.splice(0);
+    spawnEnemies(1);
+    playerGrid.reset();
 }
-joinNormalButton.addEventListener("click", joinGame("normal"));
-joinWeirdButton.addEventListener("click", joinGame("weird"));
+
+startGameButton.addEventListener("click", joinGame("normal"));
 
 gameCanvas.oncontextmenu = _ => false;
 
-// const grids = [playerGrid, opponentGrid];
+function boundsCheck(entity) {
+    const { gridX, gridY } = entity;
+    const gridSize = Grid.gridSize - 1;
+    const { squareSpaces } = Entity;
+    if (gridX < 0) {
+        entity.squareX = 0;
+        entity.gridX = 0;
+    }
+    if (gridX > gridSize) {
+        entity.squareX = squareSpaces - 1;
+        entity.gridX = gridSize;
+    }
+    if (gridY < 0) {
+        entity.squareY = 0;
+        entity.gridY = 0;
+    }
+    if (gridY > gridSize) {
+        entity.squareY = squareSpaces - 1;
+        entity.gridY = gridSize;
+    }
+}
+
+let movementTick = false;
 setInterval(_ => {
+    if (movementTick) {
+        listen("a", _ => player.squareX --);
+        listen("d", _ => player.squareX ++);
+        listen("w", _ => player.squareY --);
+        listen("s", _ => player.squareY ++);
+        boundsCheck(player);
+
+        enemies.forEach((enemy, _, array) => {
+            enemy.onTick(player);
+            boundsCheck(enemy);
+            if (enemy.health < 0) {
+                const index = array.indexOf(enemy);
+                enemies.splice(index);
+            }
+        });
+
+        if (player.health < 0) {
+            nextLevel();
+            player.health = Player.startingHealth;
+        }
+    }
+    
+    movementTick = !movementTick;
+
     if (resizing) return;
 
     const { width, height } = gameCanvas;
@@ -149,38 +232,25 @@ setInterval(_ => {
     gameContext.clearRect(0, 0, width, height);
 
     playerGrid.draw(gameContext, height);
-    opponentGrid.draw(gameContext, height * otherPlayerScale);
+
+    enemies.forEach(enemy => {
+        enemy.draw(gameContext, height);
+    });
 
     playerDisplay.update(completedGrids, 0);
-    opponentDisplay.update(0, 0);
+    player.draw(gameContext, height);
 }, 1000/60);
 
+function listen(key, func) {
+    if(keysPressed[key]) func();
+}
 
 setInterval(_ => {
     resizing = false;
-
-    socket.emit("info", player.serverInfo);
 }, 200);
-
-socket.on("info", info => {
-    if (queueing) {
-        queueing = false;
-        mainMenu.classList.add("d-none");
-        player.reset();
-        playerGrid.reset();
-    }
-    opponent.serverInfo = info;
-});
-
-socket.on("updateGrid", grid => {
-    playerGrid.serverGrid = grid;
-});
-
-socket.on("room", console.log);
 
 function gameEnd(type){
     alert("You " + type);
+    enemies.splice(0);
     mainMenu.classList.remove("d-none");
 }
-
-socket.on("gameEnd", gameEnd);

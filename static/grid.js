@@ -43,8 +43,8 @@ class Grid {
         const { abs } = Math;
         const { gridSize } = Grid;
         const square = this.squares.find((s, i) => {
-            const matchesX = abs(x - s.x) < 1/gridSize;
-            const matchesY = abs(y - s.y) < 1/gridSize;
+            const matchesX = s.gridX == x;//abs(x - s.x) < 1/gridSize;
+            const matchesY = s.gridY == y;//abs(y - s.y) < 1/gridSize;
             return matchesX && matchesY;
         });
 
