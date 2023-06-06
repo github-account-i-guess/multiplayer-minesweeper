@@ -36,5 +36,11 @@ class Enemy extends Entity {
     onTick(player) {
         this.move(player);
         this.attack(this, player);
+        const { currentSquare } = this;
+
+        if (currentSquare && currentSquare.mine && !currentSquare.flagged) {
+            this.health = 0;
+            currentSquare.flagged = true;
+        }
     }
 }

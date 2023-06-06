@@ -74,7 +74,7 @@ class Entity {
     }
 
     get currentSquare() {
-        const { squares } = this.grid;
+        const { squares } = playerGrid;
         return squares.find(s => {
             return s.gridX == this.gridX &&
                 s.gridY == this.gridY;

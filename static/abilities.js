@@ -47,10 +47,10 @@ class Ability {
             const damage = (100 - health)/10;
             attack(0.01, damage, "rgba(100, 0, 0, 0.9)", false);
         }),
-        tacticalNuke: new Ability(player => {
-            if (player.health >= 50) {
+        bigMine: new Ability(player => {
+            if (player.mines >= 30) {
                 attack(1, 100, "rgba(0, 0, 0, 0.5)", true);
-                player.health = 1;
+                player.health -= 30;
             }
         }),
         dash: new Ability(player => {
@@ -74,6 +74,7 @@ class Ability {
             attackAnimation(player, range, "rgba(125, 125, 125, 0.5)")
         }),
         heal: new Ability(player => {
+            attackAnimation(player, 0.05, "green");
             const { mines } = player;
             if (mines >= 5) {
                 player.mines -= 5;

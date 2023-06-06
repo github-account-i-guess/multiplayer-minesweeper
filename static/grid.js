@@ -1,14 +1,13 @@
 class Grid {
     // static density = 99 / (16 * 30);
     // static density = 75 / (16* 30);
-    static mode = "normal";
+    static densityNumerator = 99;//99
     static get density() {
         const expertGridSize = (16 * 30);
         const { mode } = this;
-        const numerator = mode == "normal" ? 75 : mode == "weird" ? 150 : 99;
-        return numerator / expertGridSize; 
+        return this.densityNumerator / expertGridSize; 
     } 
-    static gridSize = 15;
+    static gridSize = 13;
 
     static gridArea = this.gridSize ** 2;
 
@@ -59,11 +58,11 @@ class Grid {
         };
 
         if (this.completed) {
-            const square = new Square(0, 0, 1, "rgba(0, 255, 0, 0.5)");
-            animations.push(new Animation((context, scale, time) => {
-                square.draw(context, scale);
-            }, 60));
-            console.log("completed");
+            // const square = new Square(0, 0, 1, "rgba(0, 255, 0, 0.5)");
+            // animations.push(new Animation((context, scale, time) => {
+            //     square.draw(context, scale);
+            // }, 60));
+            // console.log("completed");
         }
     }
 

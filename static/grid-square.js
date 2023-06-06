@@ -95,6 +95,7 @@ class GridSquare {
     }
 
     reveal(x, y, event) {
+        // if (this.flagged) this.flagged = false;
         if (this.revealed || this.flagged) return;
 
         this.revealed = true;
